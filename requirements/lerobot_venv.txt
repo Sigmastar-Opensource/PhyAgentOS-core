@@ -1,0 +1,51 @@
+# lerobot_venv — IPU 策略服务器侧（D3 板，python3.10）
+#
+# 本 venv 跑 LeRobot 0.4.2 + lerobot_ipu + IPU ACT 模型推理服务。
+# python 版本必须 3.10，与 LeRobot 0.4.2 的训练 / 量化流程一致。
+#
+# 安装顺序（注意 D3 板 /tmp 空间有限，提前 export TMPDIR=/root/tmp）：
+#   python3.10 -m venv /root/lerobot_venv
+#   source /root/lerobot_venv/bin/activate
+#   pip install --upgrade pip
+#   pip install -r requirements/lerobot_venv.txt
+#   cd /root/lerobot-0.4.2 && pip install -e .
+#   cd /root/leisaac-sgs && pip install -e ./ipu_toolchain && pip install -e ./lerobot_ipu
+#
+# 启动 IPU 策略服务器前必须：
+#   export LD_LIBRARY_PATH=/path/to/py_ipu.so/dir:$LD_LIBRARY_PATH
+
+# ----- PyTorch（CPU 版！D3 板没有 CUDA）-----
+# 从官方 CPU index 装，避免拉到 CUDA 轮子（体积大且板端无法用）。
+# --extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.4.1+cpu
+torchvision==0.19.1+cpu
+
+# ----- 数据 / 图像 -----
+numpy>=1.24,<2.0
+pillow>=10.0,<11.0
+
+# ----- gRPC（板内 watch client ↔ IPU server）-----
+grpcio>=1.60,<2.0
+protobuf>=4.25,<6.0
+
+# ----- LeRobot 自身依赖（pip install -e . 之外的额外依赖）-----
+einops>=0.7
+huggingface_hub>=0.20
+safetensors>=0.4
+transformers>=4.38,<4.46
+datasets>=2.16
+timm>=0.9
+scipy>=1.10
+scikit-image>=0.21
+av>=11.0
+imageio>=2.31
+imageio-ffmpeg>=0.4.9
+
+# ----- 板端工具链（leisaac-sgs）-----
+# calibrator_custom：装在 leisaac-sgs/ipu_toolchain 下
+# py_ipu：D3 出厂 SDK 提供（.so），不在 PyPI 上，必须从板端 SDK 路径加载
+
+# ----- 通用工具 -----
+pyyaml>=6.0
+tqdm>=4.65
+rich>=13.0

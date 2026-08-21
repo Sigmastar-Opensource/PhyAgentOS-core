@@ -236,6 +236,74 @@ skillruntimes:
       allowed_bridges:
         - bridge://safety_clamp
       forbidden: []
+  - id: act_ipu_so101
+    runtime: IPUACTSkillRuntime
+    runtime_kind: policy
+    loop_mode: policy_closed_loop
+    agent_exposure: none
+    supported_target_kinds:
+      - simulation
+    policy:
+      policy_client: ipu_act_grpc
+      policy_adapter: policy_adapter://act_so101_adapter
+      supports_chunk: true
+    observation_contract:
+      observation_type: multimodal
+      empty_observation_allowed: false
+    supports_chunk: true
+    default_replan_every: 5
+    requires:
+      sensors: []
+      environment_outputs: []
+      strict_environment_contract: true
+    input_contract:
+      images:
+        - observation.images.front
+        - observation.images.wrist
+      state: observation.state
+      prompt: task_description
+    output_contract:
+      action:
+        action_space_id: so101_joint_pos_v1
+        tensor_key: actions
+        shape:
+          - T
+          - 6
+        dtype: float32
+        normalized: false                 # server-side denormalization
+        representation: joint_position_targets
+        frame: joint
+        control_mode: joint_position
+        components:
+          - {name: shoulder_pan,  unit: rad}
+          - {name: shoulder_lift, unit: rad}
+          - {name: elbow_flex,    unit: rad}
+          - {name: wrist_flex,    unit: rad}
+          - {name: wrist_roll,    unit: rad}
+          - {name: gripper,       unit: normalized}
+        chunk:
+          variable_T: true
+          default_T: 16
+          policy_hz: 30                   # Isaac Sim env dt = 1/30s
+    config:
+      ipu_act:
+        policy_type: act
+        policy_checkpoint_path: /root/leisaac-sgs/act/act_fixed.sim_sgsimg.img
+        actions_per_chunk: 16
+        camera_keys:
+          - observation.images.front
+          - observation.images.wrist
+        proprio_key: observation.state
+        timeout_s: 15.0
+        device: cpu
+        lerobot_features:
+          observation.images.front: {dtype: image, shape: [480, 640, 3]}
+          observation.images.wrist: {dtype: image, shape: [480, 640, 3]}
+          observation.state: {dtype: float64, shape: [6]}
+    adapter_requirements:
+      allowed_bridges:
+        - bridge://safety_clamp
+      forbidden: []
   - id: go2_builtin_command
     runtime: CommandSimSkillRuntime
     runtime_kind: builtin

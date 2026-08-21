@@ -1,0 +1,43 @@
+# paos_venv — PhyAgentOS 侧（D3 板，python3.11）
+#
+# 本 venv 只装 PhyAgentOS 自身与其直接依赖。不装 LeRobot、不装 torch、不装 py_ipu。
+# IPU 推理由另一个 venv（lerobot_venv）通过 gRPC 提供。
+#
+# 安装顺序：
+#   python3.11 -m venv /root/paos_venv
+#   source /root/paos_venv/bin/activate
+#   pip install --upgrade pip
+#   pip install -r requirements/paos_venv.txt
+#   cd /root/PhyAgentOS-preview && pip install -e .
+#
+# 注意：PhyAgentOS 用 `pip install -e .` 以 editable 模式安装，
+# 这样后续覆盖 runtime/ 下的 adapter / factory / supervisor 文件后无需重装。
+
+# ----- gRPC / 通信 -----
+grpcio>=1.60,<2.0
+protobuf>=4.25,<6.0
+
+# ----- 数据 / 序列化 -----
+numpy>=1.24,<2.0
+msgpack>=1.0,<2.0
+pillow>=10.0,<11.0
+
+# ----- 配置 / schema -----
+pydantic>=2.5,<3.0
+pyyaml>=6.0,<7.0
+
+# ----- 网络服务端 -----
+websockets>=12.0,<14.0
+
+# ----- LLM 客户端（OpenAI 兼容协议调 DeepSeek 等）-----
+openai>=1.10,<2.0
+
+# ----- google API（PhyAgentOS 部分工具调用路径用到）-----
+google-cloud>=0.34
+google-api-python-client>=2.100
+google-auth>=2.25
+
+# ----- 通用工具 -----
+requests>=2.31,<3.0
+click>=8.1,<9.0
+rich>=13.0,<14.0

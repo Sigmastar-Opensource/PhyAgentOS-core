@@ -74,6 +74,7 @@ class SkillRuntimeSpec(BaseModel):
     output_contract: dict[str, Any] = Field(default_factory=dict)
     adapter_requirements: dict[str, Any] = Field(default_factory=dict)
     requires: SkillRequirements = Field(default_factory=SkillRequirements)
+    config: dict[str, Any] = Field(default_factory=dict)
     benchmark: SkillBenchmarkCapability | None = None
 
 

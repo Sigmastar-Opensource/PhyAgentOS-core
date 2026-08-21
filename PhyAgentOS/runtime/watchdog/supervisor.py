@@ -69,7 +69,7 @@ class WatchdogSupervisor:
             self.failure_escalator.handle(exc.session_id, exc, self.registry)
             return True
         if scheduled is None:
-            print("[runtime-watchdog] no pending session (check SESSIONS.md status=pending)", flush=True)
+            #print("[runtime-watchdog] no pending session (check SESSIONS.md status=pending)", flush=True)
             return False
         session_id = scheduled.session.session_id
         if not self.registry.try_claim(session_id, self.worker_id):
@@ -126,7 +126,9 @@ class WatchdogSupervisor:
             cleanup_error: Exception | None = None
             try:
                 if scheduled.skillruntime_spec.runtime_kind == "policy":
-                    policy_client = self._build_policy_client(session, scheduled.target_spec)
+                    policy_client = self._build_policy_client(
+                        session, scheduled.target_spec, scheduled.skillruntime_spec
+                    )
                 runtime = self.skill_registry.build(scheduled.skillruntime_spec.runtime)
                 runner = SessionRunner(
                     session=session,
@@ -255,15 +257,19 @@ class WatchdogSupervisor:
                 message = "UNSUPPORTED_BENCHMARK_SCHEMA: " + message
             raise SchemaValidationError(message) from exc
 
-    def _build_policy_client(self, session, target_spec):
+    def _build_policy_client(self, session, target_spec, skillruntime_spec=None):
         action_cfg = target_spec.config.get("action", {})
         action_dim = target_spec.config.get("action_dim", action_cfg.get("action_dim", 7))
         chunk_size = target_spec.config.get("chunk_size", action_cfg.get("chunk_size", 4))
+        skillruntime_config = None
+        if skillruntime_spec is not None:
+            skillruntime_config = getattr(skillruntime_spec, "config", None) or {}
         return build_policy_client(
             session.routing.policy_endpoint or "dummy://local",
             timeout_s=session.timeouts.policy_timeout_s,
             action_dim=int(action_dim),
             chunk_size=int(chunk_size),
+            skillruntime_config=skillruntime_config,
         )
 
     def _close_policy_client(self, policy_client) -> None:

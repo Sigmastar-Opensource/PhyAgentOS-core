@@ -1,0 +1,38 @@
+# gpu_server — GPU 服务器侧（Isaac Sim 仿真，Ubuntu 22.04 + NVIDIA Driver ≥ 535）
+#
+# 本环境在远端 GPU 服务器上跑 Isaac Sim + SO101 + so101_server.py（TargetWS）。
+# Isaac Sim 自带 Python 3.10 环境，多数依赖随 Isaac Sim 安装，
+# 这里只列 so101_server.py 直接用到的包，以及 Isaac Sim 之外需要补的。
+#
+# 安装顺序：
+#   1) 先按 NVIDIA 官方文档装 Isaac Sim 4.x（含 CUDA 12.x、PyTorch CUDA 版）
+#   2) 进 Isaac Sim 自带 python 环境装以下包：
+#        ${ISAACSIM_PYTHON} -m pip install -r requirements/gpu_server.txt
+#      或者用系统 python3.10 + 独立 venv（若 so101_server.py 不依赖 isaacsim 的包路径）。
+
+# ----- PyTorch（CUDA 版！Isaac Sim 走 GPU 渲染 + 张量推理）-----
+# Isaac Sim 4.x 自带 torch，若自带版本可用则不要重复装；以下仅在独立 venv 场景下参考。
+# torch==2.4.1+cu121
+# torchvision==0.19.1+cu121
+
+# ----- Isaac Sim 本体 -----
+# isaacsim 不在 PyPI 上，通过 Omniverse Launcher 或 pip 加 --extra-index-url 装：
+#   pip install isaacsim --extra-index-url https://pypi.nvidia.com
+# 这里不写死版本，按 Isaac Sim 4.x 当前可用版本装。
+
+# ----- 通信层（so101_server.py ↔ D3 watchdog）-----
+websockets>=12.0,<14.0
+msgpack>=1.0,<2.0
+numpy>=1.24,<2.0
+pillow>=10.0,<11.0
+
+# ----- leisaac 工具（leisaac-sgs 仓库提供）-----
+# 通过 `pip install -e /path/to/leisaac-sgs/source/leisaac` 安装，
+# 这里不固定版本号。
+
+# ----- Isaac Sim 启动常用辅助 -----
+scipy>=1.10
+matplotlib>=3.7
+tqdm>=4.65
+rich>=13.0
+pyyaml>=6.0

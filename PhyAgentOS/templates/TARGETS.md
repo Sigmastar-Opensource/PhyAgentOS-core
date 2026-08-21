@@ -221,6 +221,42 @@ targets:
       max_chunk_size: 50
       max_steps: 200
       chunk_size: 1
+  - id: so101_isaac
+    target_class: remote
+    target_kind: simulation
+    enabled: true
+    workspace: workspaces/so101_isaac
+    supported_skillruntimes:
+      - act_ipu_so101
+    runtime:
+      target_runtime: SO101IsaacRemoteTargetProxy
+      target_endpoint: targetws://so101-isaac-host:9005
+      target_adapter: target_adapter://so101_isaac_adapter
+      runtime_contract_ref: configs/runtime/contracts/so101_isaac.runtime.yaml
+    observation:
+      observation_type: multimodal
+      empty_observation_allowed: false
+    perception:
+      enabled: false
+      strict_preflight: true
+      sensor_config_ref: null
+      perception_config_ref: null
+      artifact_dir: null
+    config:
+      task: LeIsaac-SO101-PickOrange-v0
+      device: cuda:0
+      action_dim: 6
+      max_chunk_size: 100
+      max_steps: 280
+      sim_warmup_steps: 30
+      episode_length_s: 24.0
+      language_instruction: "pick the orange and place it on the plate"
+      cameras:
+        - front
+        - wrist
+      action:
+        action_dim: 6
+        chunk_size: 16
   - id: go2_real_builtin
     target_class: remote
     target_kind: real_robot

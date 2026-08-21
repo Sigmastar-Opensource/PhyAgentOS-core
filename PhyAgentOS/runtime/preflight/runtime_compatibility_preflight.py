@@ -86,8 +86,8 @@ class RuntimeCompatibilityPreflight:
                 missing.append(self._missing("POLICY_ENDPOINT_UNREACHABLE", "SESSIONS.md sessions[].routing.policy_endpoint", "policy endpoint", None, session.session_id, "Set routing.policy_endpoint."))
             else:
                 scheme = urlparse(policy_endpoint).scheme
-                if scheme not in {"dummy", "openpi", "policyws", "b1k-ws", "b1kws"}:
-                    missing.append(self._missing("POLICY_ENDPOINT_UNREACHABLE", "SESSIONS.md sessions[].routing.policy_endpoint", "dummy://, openpi://, policyws://, or b1k-ws:// endpoint", policy_endpoint, session.session_id, "Use a supported policy endpoint."))
+                if scheme not in {"dummy", "openpi", "policyws", "b1k-ws", "b1kws", "grpc", "llm", "lerobot-ipu"}:
+                    missing.append(self._missing("POLICY_ENDPOINT_UNREACHABLE", "SESSIONS.md sessions[].routing.policy_endpoint", "dummy://, openpi://, policyws://, b1k-ws://, or grpc:// endpoint", policy_endpoint, session.session_id, "Use a supported policy endpoint."))
         if skill.runtime_kind == "builtin" and skill.agent_exposure != "none" and skill.target_tool_policy is None:
             missing.append(self._missing("TARGET_TOOL_POLICY_MISSING", "SKILLRUNTIME.md skillruntimes[].target_tool_policy", "target tool policy", None, session.session_id, "Set target_tool_policy for exposed builtin skills."))
 

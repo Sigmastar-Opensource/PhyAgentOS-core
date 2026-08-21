@@ -9,6 +9,7 @@ from PhyAgentOS.runtime.skillruntime.base import BaseSkillRuntime
 from PhyAgentOS.runtime.skillruntime.builtin.command_sim import CommandSimSkillRuntime
 from PhyAgentOS.runtime.skillruntime.builtin.libero_benchmark import LiberoBenchmarkSkillRuntime
 from PhyAgentOS.runtime.skillruntime.policy import OpenPISkillRuntime
+from PhyAgentOS.runtime.skillruntime.policy.ipu_act import IPUACTSkillRuntime
 from PhyAgentOS.runtime.communication.target_ws_client import TargetWSClient
 from PhyAgentOS.runtime.targets.base import BaseRolloutTarget
 from PhyAgentOS.runtime.targets.factory import (
@@ -60,5 +61,6 @@ class SkillRuntimeRegistry:
 
 
 register_skill_runtime("OpenPISkillRuntime", OpenPISkillRuntime)
+register_skill_runtime("IPUACTSkillRuntime", IPUACTSkillRuntime)
 register_skill_runtime("CommandSimSkillRuntime", CommandSimSkillRuntime)
 register_skill_runtime("LiberoBenchmarkSkillRuntime", LiberoBenchmarkSkillRuntime)
