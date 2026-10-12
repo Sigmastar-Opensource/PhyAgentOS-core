@@ -22,11 +22,10 @@
 
 <div align="center">
 
-<a href="setup/arm_demo.mp4">
-  <img src="setup/arm_demo_poster.jpg" alt="Comake Pi D3 具身智能端到端验证系统演示" width="360">
-</a>
+[mymedia_arm_demo_10mb.webm](https://github.com/user-attachments/assets/e28e187a-c88e-467e-b098-9d4a0114dd45)
 
-<p><sub>▲ 点击封面图播放完整演示视频（约 2 分 50 秒）</sub></p>
+
+<p><sub>▲ 点击封面图播放完整演示视频</sub></p>
 
 </div>
 
