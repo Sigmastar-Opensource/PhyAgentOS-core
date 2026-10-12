@@ -22,10 +22,7 @@
 
 <div align="center">
 
-[mymedia_arm_demo_10mb.webm](https://github.com/user-attachments/assets/e28e187a-c88e-467e-b098-9d4a0114dd45)
-
-
-<p><sub>▲ 点击封面图播放完整演示视频</sub></p>
+[基于D3平台的仿真机械臂演示视频](https://github.com/user-attachments/assets/e28e187a-c88e-467e-b098-9d4a0114dd45)
 
 </div>
 
