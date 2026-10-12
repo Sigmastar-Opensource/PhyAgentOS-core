@@ -14,6 +14,7 @@
 - **目标硬件**：Sigmastar D3（IPU 推理）+ NVIDIA GPU（Isaac Sim 仿真）
 - **机械臂**：SO101（6-DoF + gripper，joint position control）
 
+
 ---
 
 ## 1. 包内容
@@ -32,6 +33,8 @@
 | `runtime/targets/remote/so101_isaac/` | `proxy.py` | `SO101IsaacRemoteTargetProxy`：D3 侧 target proxy，注入 SO101 默认参数 + action 校验 |
 | `templates/configs/runtime/contracts/` | `so101_isaac.runtime.yaml` | target runtime contract YAML（`so101_joint_pos_v1` action contract） |
 | `templates/` | `TARGETS.md` / `SKILLRUNTIME.md` / `SESSIONS.md` | 已内置 `so101_isaac` target、`act_ipu_so101` skillruntime、session 示例条目 |
+
+> 外部依赖（leisaac-sgs 代码、lerobot / IPU 环境、ACT 模型）的获取与构建，见 **[LeRobot_README.md](./LeRobot_README.md)**。
 
 
 ---
@@ -98,34 +101,21 @@ sudo apt install -y build-essential cmake git curl wget \
     python3.10 python3.10-venv
 ```
 
-PhyAgentOS 代码拉取（基于 commit-d59dd52 版本）；
-```bash
-cd /root
-git clone https://github.com/PhyAgentOS/PhyAgentOS.git PhyAgentOS-preview
+PhyAgentOS 代码：直接使用本仓库（`PhyAgentOS-core/`），无需再 clone。本仓库基于 PhyAgentOS 官方仓库 `PhyAgentOS-preview` 的 commit `d59dd52`（版本号 `v0.1.7.20260724-56174c8-4-gd59dd52`），§1 所列源文件路径与该版本一一对应，直接覆盖到对应路径即可。
 
-cd PhyAgentOS-preview
-git checkout d59dd52
-```
+leisaac-sgs 代码拉取与依赖构建：
 
-PhyAgentOS 项目代码更新：
-```bash
-cd /root/PhyAgentOS-preview
-git apply --index /root/full_diff.diff
-```
+见 **[LeRobot_README.md](./LeRobot_README.md)**（§2 克隆仓库、§3 环境搭建）。该文档覆盖完整链路：环境搭建 → 数据采集 → 模型训练 → IPU 模型转换 → 仿真验证。
 
 ### 3.3 D3 板端双 venv 设计
 
-D3 板同时运行 PhyAgentOS 与 IPU 策略服务器，依赖差异较大（尤其 Python 主版本不同），采用**双 venv 隔离**：
+D3 板同时运行 PhyAgentOS 与 IPU 策略服务器，依赖差异较大（尤其 Python 主版本不同），采用**双 venv 隔离**。目录布局只暴露两个 venv 入口，其余源码 / 工具链 / 运行时目录用 `...` 概括：
 
 ```
 /root/
-├── paos_venv/                # PhyAgentOS（python3.11）
-├── lerobot/                  # IPU 策略服务器 + LeRobot（python3.10）
-├── PhyAgentOS-preview/       # PhyAgentOS 源码
-├── leisaac-sgs/              # lerobot_ipu + calibrator_custom 工具链
-├── lerobot-0.4.2/            # LeRobot 依赖源码
-├── .PhyAgentOS/              # 运行时 workspace（SESSIONS.md 等）
-└── full_diff.diff            # git diff 文件
+├── paos_venv/     # venv ①：PhyAgentOS 侧（python3.11）
+├── lerobot/       # venv ②：IPU 策略服务器 + LeRobot 侧（python3.10）
+└── ...            # 其余源码 / 工具链 / 运行时目录，由下方创建命令生成
 ```
 
 创建命令：
@@ -137,26 +127,23 @@ source /root/paos_venv/bin/activate
 pip install --upgrade pip
 cd /root/PhyAgentOS-preview && pip install -e .
 deactivate
-
-# lerobot venv（python3.10）
-python3.10 -m venv /root/lerobot
-source /root/lerobot/bin/activate
-pip install --upgrade pip
-cd /root/lerobot-0.4.2 && pip install -e .
-cd /root/leisaac-sgs && pip install -e ./ipu_toolchain && pip install -e ./lerobot_ipu
-deactivate
 ```
+
+> lerobot venv（python3.10）的创建与依赖安装见 **[LeRobot_README.md](./LeRobot_README.md)** §3.5 板端环境。
 
 ### 3.4 GPU 服务器 conda 环境
 
-GPU 服务器侧 `so101_server.py` 不依赖 PhyAgentOS 包，但依赖 Isaac Sim + Isaac Lab，`so101_server.py`可放入 /leisaac-sgs 文件夹下：
+GPU 服务器侧 `so101_server.py` 不依赖 PhyAgentOS 包，但依赖 Isaac Sim + Isaac Lab，`so101_server.py` 可放入 `leisaac_sgs/` 文件夹下。环境搭建与 **[LeRobot_README.md](./LeRobot_README.md)** §3.1 的开发机环境**完全一致**（`leisaac` conda 环境 + Isaac Sim 5.1.0 + Isaac Lab 2.3.0 + leisaac 仿真包），按该文档操作即可，此处不再重复。
+
+唯一区别：`so101_server.py` 额外直接依赖图像处理包，在该环境里补装一句：
 
 ```bash
-conda create -n leisaac python=3.11 -y
-conda activate leisaac
-# 按 NVIDIA 官方文档装 Isaac Sim 5.1.0 + Isaac Lab 2.3.0
-pip install msgpack websockets numpy opencv-python pillow
+pip install numpy opencv-python pillow
 ```
+
+### 3.5 ACT 模型获取
+
+板上 `ipu_act.policy_checkpoint_path` 指向的 ACT `.img` 不在本包内。模型的下载、训练与 IPU 转换（`.img`）说明见 **[LeRobot_README.md](./LeRobot_README.md)** §5 模型训练、§6 IPU 模型转换。
 
 ---
 
@@ -188,7 +175,7 @@ ssh root@<D3-ip>
 source /root/lerobot/bin/activate
 export LD_LIBRARY_PATH=/path/to/py_ipu.so/dir:$LD_LIBRARY_PATH
 
-python -m lerobot_ipu.serve_ipu_async \
+python -m lerobot_ipu.server \
   --host 0.0.0.0 --port 8080 \
   --obs-queue-timeout 2
 ```
@@ -268,7 +255,7 @@ session_ctx 里注入的关键参数（来自 TARGETS.md + SKILLRUNTIME.md）：
 | 参数 | 含义 | 默认值 |
 |---|---|---|
 | `ipu_act.actions_per_chunk` | 单次推理 chunk 长度 | 16 |
-| `ipu_act.policy_checkpoint_path` | 板上 ACT `.img` 路径 | `/root/leisaac-sgs/act/act_fixed.sim_sgsimg.img` |
+| `ipu_act.policy_checkpoint_path` | 板上 ACT `.img` 路径 | `/root/leisaac-sgs/act/act_fixed.sim_sgsimg.img`（获取方式见 §3.5） |
 | `ipu_act.timeout_s` | 单次 gRPC 推理超时 | 15.0 |
 | `target.config.max_steps` | 单 session 最大步数 | 280 |
 | `target.config.max_chunk_size` | target 端可接受 chunk 上限 | 100 |
@@ -420,7 +407,7 @@ which python                                  # D3 板上必须是 paos_venv 或
 conda activate leisaac                        # GPU 服务器上
 
 # 确认进程
-ps aux | grep -E "paos|watchdog|serve_ipu"
+ps aux | grep -E "paos|watchdog|lerobot_ipu.server"
 
 # 看 session 状态
 grep -E "status:|session_id:" /root/.PhyAgentOS/workspace/SESSIONS.md | head -4
@@ -433,7 +420,7 @@ python -c "import yaml; yaml.safe_load(open('/root/.PhyAgentOS/workspace/SESSION
 
 ## 8. 依赖清单
 
-Python 依赖详见 [requirements/](requirements/) 目录：
+Python 依赖详见 [requirements/](../requirements/) 目录：
 
 - `paos_venv.txt` — PhyAgentOS 侧（python3.11）
 - `lerobot_venv.txt` — IPU 策略服务器侧（python3.10）
@@ -452,6 +439,8 @@ Python 依赖详见 [requirements/](requirements/) 目录：
 ## 9. 参考文档
 
 - PhyAgentOS 官方仓库：https://github.com/PhyAgentOS/PhyAgentOS
+- leisaac 仿真包：https://github.com/LightwheelAI/leisaac
+- 依赖构建（LeRobot + Sigmastar IPU SDK 全流程）：[LeRobot_README.md](./LeRobot_README.md)
 
 ---
 
